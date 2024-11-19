@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import BottomNavigasi from "@/components/BottomNavigasi";
 import Provider from "@/components/Provider";
+import QueryProvider from "@/components/QueryProvider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -28,7 +29,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <Provider>{children}</Provider>
+        <Provider>
+          <QueryProvider>{children}</QueryProvider>
+        </Provider>
         <BottomNavigasi />
       </body>
     </html>
