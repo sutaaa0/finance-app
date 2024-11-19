@@ -6,14 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -42,14 +34,19 @@ import {
 } from 'lucide-react'
 import MenuButton from '@/components/MenuButton'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 
 export default function HomePage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('expenses')
   const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false)
+  const { data: session } = useSession();
+
+  console.log(session);
+
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 mb-12">
       {/* Header */}
       <div className="bg-gradient-to-br from-purple-500 to-indigo-600 p-6 pb-24 relative">
         <div className="flex justify-between items-center">

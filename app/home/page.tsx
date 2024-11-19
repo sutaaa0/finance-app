@@ -1,10 +1,17 @@
-import React from 'react'
-import HomePage from '../pages/home'
+import React from "react";
+import HomePage from "../pages/home";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
-const page = () => {
-  return (
-    <HomePage/>
-  )
-}
+const page = async () => {
+  const session = await auth();
+  console.log("data session", session);
 
-export default page
+  if (!session) {
+    redirect("/signin");
+  }
+
+  return <HomePage />;
+};
+
+export default page;
