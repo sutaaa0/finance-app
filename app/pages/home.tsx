@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,7 +13,10 @@ import { Home, LayoutGrid, BarChart3, User, Pizza, Coffee, Bus, ShoppingBag, Gif
 import MenuButton from "@/components/MenuButton";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useIncome, useTotalExpense, useTransactions } from "../hooks/transactions";
+import { useAddTransaction, useIncome, useTotalExpense, useTransactions } from "../hooks/transactions";
+import { Transaction } from "../types/types";
+import { useToast } from "@/hooks/use-toast";
+import { TransactionForm } from "@/components/TransactionForm";
 
 export default function HomePage() {
   const router = useRouter();
@@ -29,9 +32,35 @@ export default function HomePage() {
   const { data: dataTransaction } = useTransactions(session?.user?.id || "");
   const { data: dataIncome, isLoading: isLoadingIncome } = useIncome(session?.user?.id || "");
 
-  console.log(dataTransaction?.transactions.map((data: any) => {
-    console.log("hasil mapping data :",data.amount);
-  }));
+  console.log(
+    dataTransaction?.transactions.map((data: any) => {
+      console.log("hasil mapping data :", data.amount);
+    })
+  );
+
+  const addTransactionMutation = useAddTransaction();
+
+  const handleAddTransaction = (transaction: Transaction) => {
+    addTransactionMutation.mutate(transaction, {
+      onSuccess: () => {
+        // Tutup dialog
+        setIsAddTransactionOpen(false);
+
+        // Tampilkan toast sukses
+        useToast().toast({
+          title: "Transaksi berhasil ditambahkan!",
+        });
+      },
+      onError: (error) => {
+        // Tampilkan pesan error
+        useToast().toast({
+          title: "Gagal menambahkan transaksi",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 mb-12">
@@ -51,39 +80,7 @@ export default function HomePage() {
                 <DialogTitle>Add New Transaction</DialogTitle>
                 <DialogDescription>Enter the details of your new transaction here.</DialogDescription>
               </DialogHeader>
-              <form className="space-y-4">
-                <div>
-                  <Label htmlFor="amount">Amount</Label>
-                  <Input id="amount" placeholder="Enter amount" type="number" />
-                </div>
-                <div>
-                  <Label htmlFor="category">Category</Label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="food">Food</SelectItem>
-                      <SelectItem value="transport">Transport</SelectItem>
-                      <SelectItem value="entertainment">Entertainment</SelectItem>
-                      <SelectItem value="bills">Bills</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="date">Date</Label>
-                  <Input id="date" type="date" />
-                </div>
-                <div>
-                  <Label htmlFor="notes">Notes</Label>
-                  <Input id="notes" placeholder="Add notes" />
-                </div>
-              </form>
-              <DialogFooter>
-                <Button type="submit" onClick={() => setIsAddTransactionOpen(false)}>
-                  Add Transaction
-                </Button>
-              </DialogFooter>
+              <TransactionForm onClose={() => setIsAddTransactionOpen(false)} />
             </DialogContent>
           </Dialog>
         </div>
