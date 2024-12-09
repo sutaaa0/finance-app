@@ -2,24 +2,20 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Transaction } from "../types/types";
 
+const API_URL = "http://localhost:5000/transactions";
+
 export function useTotalExpense(userId: string) {
   return useQuery({
     queryKey: ["getTotalExpense", userId],
     queryFn: async () => {
-      if (!userId) {
-        throw new Error("User ID not found");
-      }
-
-      const response = await axios.get(`http://localhost:5000/api/transactions/${userId}`);
-      const data = response.data;
-
-      // Hitung total expense
+      if (!userId) throw new Error("User ID not found");
+      const { data } = await axios.get(`${API_URL}/${userId}`);
       const totalExpense = data
-        .filter((transaction: Transaction) => transaction.type === "expense") // Filter hanya "expense"
-        .reduce((sum: number, transaction: any) => sum + transaction.amount, 0); // Hitung total
-
+        .filter((transaction: Transaction) => transaction.type === "expense")
+        .reduce((sum: number, transaction: Transaction) => sum + transaction.amount, 0);
       return { totalExpense };
     },
+    enabled: !!userId, // Only run if userId is provided
   });
 }
 
@@ -27,23 +23,14 @@ export function useTransactions(userId: string) {
   return useQuery({
     queryKey: ["transactions", userId],
     queryFn: async () => {
-      if (!userId) {
-        throw new Error("User ID not found");
-      }
-
-      const response = await axios.get(`http://localhost:5000/api/transactions/${userId}`);
-      const data = response.data;
-
-      const transactions = data.map((transaction: Transaction) => ({
-        amount: transaction.amount,
-        category: transaction.category,
-        date: transaction.date,
-        notes: transaction.notes,
-        type: transaction.type,
+      if (!userId) throw new Error("User ID not found");
+      const { data } = await axios.get(`${API_URL}/${userId}`);
+      return data.map((transaction: Transaction) => ({
+        ...transaction,
+        date: new Date(transaction.date), // Parse date if needed
       }));
-
-      return { transactions };
     },
+    enabled: !!userId,
   });
 }
 
@@ -51,20 +38,14 @@ export function useIncome(userId: string) {
   return useQuery({
     queryKey: ["getTotalIncome", userId],
     queryFn: async () => {
-      if (!userId) {
-        throw new Error("User ID not found");
-      }
-
-      const response = await axios.get(`http://localhost:5000/api/transactions/${userId}`);
-      const data = response.data;
-
-      // Hitung total income
+      if (!userId) throw new Error("User ID not found");
+      const { data } = await axios.get(`${API_URL}/${userId}`);
       const totalIncome = data
-        .filter((transaction: Transaction) => transaction.type === "income") // Filter hanya "income"
-        .reduce((sum: number, transaction: any) => sum + transaction.amount, 0); // Hitung total
-
+        .filter((transaction: Transaction) => transaction.type === "income")
+        .reduce((sum: number, transaction: Transaction) => sum + transaction.amount, 0);
       return { totalIncome };
     },
+    enabled: !!userId,
   });
 }
 
@@ -72,23 +53,14 @@ export function useAddTransaction() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    // Fungsi untuk mengirim transaksi ke backend
     mutationFn: async (transaction: Transaction) => {
-      const response = await axios.post("http://localhost:5000/api/transactions", transaction);
-      return response.data;
+      const { data } = await axios.post(API_URL, transaction);
+      return data;
     },
-    // Setelah berhasil, perbarui cache query
     onSuccess: () => {
-      // Invalidate dan refresh query terkait
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["getTotalExpense"] });
       queryClient.invalidateQueries({ queryKey: ["getTotalIncome"] });
     },
-    // Tangani error jika terjadi
-    onError: (error) => {
-      console.error("Gagal menambahkan transaksi:", error);
-      // Anda bisa menambahkan logika untuk menampilkan pesan error ke pengguna
-    }
   });
 }
-
