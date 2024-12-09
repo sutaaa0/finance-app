@@ -1,215 +1,172 @@
-"use client";
-
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
+"use client"
+import { useState } from "react"
+import { useForm, Controller } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { useAddTransaction } from "@/app/hooks/transactions";
-import { useSession } from "next-auth/react";
-import { useToast } from "@/hooks/use-toast";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { useAddTransaction } from "@/app/hooks/transactions"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { toast } from "@/hooks/use-toast"
 
-// Skema validasi untuk transaksi
-const transactionSchema = z.object({
-  amount: z.coerce.number().min(0.01, { 
-    message: "Jumlah harus lebih dari 0" 
-  }),
-  category: z.string().min(1, { 
-    message: "Pilih kategori" 
-  }),
-  date: z.string().refine(val => !isNaN(Date.parse(val)), {
-    message: "Tanggal tidak valid"
-  }),
+const expenseSchema = z.object({
+  amount: z.number().positive("Amount must be a positive number"),
+  category: z.string().min(1, "Category is required"),
+  date: z.string().min(1, "Date is required"),
   notes: z.string().optional(),
-  type: z.enum(["expense", "income"], {
-    required_error: "Pilih tipe transaksi"
+})
+
+type ExpenseFormData = z.infer<typeof expenseSchema>
+
+const categories = [
+  "Food & Dining",
+  "Transportation",
+  "Utilities",
+  "Housing",
+  "Healthcare",
+  "Entertainment",
+  "Shopping",
+  "Personal Care",
+  "Education",
+  "Travel",
+  "Gifts & Donations",
+  "Other",
+]
+
+export function TransactionForm({userId}: {userId: string}) {
+  const router = useRouter()
+  const { mutate, isPending } = useAddTransaction()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<ExpenseFormData>({
+    resolver: zodResolver(expenseSchema),
   })
-});
 
-export function TransactionForm({ 
-  onClose 
-}: { 
-  onClose: () => void 
-}) {
-  const { data: session } = useSession();
-  const { toast } = useToast();
-  const addTransactionMutation = useAddTransaction();
-
-  // Inisialisasi form
-  const form = useForm<z.infer<typeof transactionSchema>>({
-    resolver: zodResolver(transactionSchema),
-    defaultValues: {
-      amount: 0, // Pastikan angka memiliki nilai awal
-      category: "",
-      date: new Date().toISOString().split('T')[0], // Tanggal hari ini
-      notes: "",
-      type: "expense"
+  const onSubmit = async (data: ExpenseFormData) => {
+    setIsSubmitting(true)
+    try {
+      // Panggil mutate dari useAddTransaction untuk membuat transaksi
+       mutate({
+        type: "expense", // Tentukan jenis transaksi
+        category: data.category,
+        amount: data.amount,
+        date: new Date(data.date).toISOString(), // Ubah format tanggal 
+        notes: data.notes || '',
+        userId: userId, // Ganti dengan ID user yang sesuai
+      })
+      reset()
+      toast({
+        title: "Expense added",
+        description: "Your expense has been successfully added.",
+      })
+      router.push("/home") // Redirect to expenses list page
+    } catch (error) {
+      console.error("Error creating transaction:", error)
+      toast({
+        title: "Error",
+        description: "There was an error adding your expense. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
     }
-  });
-
-  // Handler submit
-  function onSubmit(values: z.infer<typeof transactionSchema>) {
-    // Tambahkan userId dari session
-    const transaction = {
-      ...values,
-      userId: session?.user?.id || ""
-    };
-
-    addTransactionMutation.mutate(transaction, {
-      onSuccess: () => {
-        toast({
-          title: "Transaksi Berhasil",
-          description: "Transaksi baru telah ditambahkan",
-        });
-        onClose(); // Tutup dialog
-        form.reset(); // Reset form
-      },
-      onError: (error) => {
-        toast({
-          title: "Gagal Menambahkan Transaksi",
-          description: error.message,
-          variant: "destructive"
-        });
-      }
-    });
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {/* Input Jumlah */}
-        <FormField
-          control={form.control}
-          name="amount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Jumlah</FormLabel>
-              <FormControl>
-                <Input 
-                  type="number" 
-                  placeholder="Masukkan jumlah" 
-                  {...field} 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Pilih Kategori */}
-        <FormField
-          control={form.control}
-          name="category"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Kategori</FormLabel>
-              <Select 
-                onValueChange={field.onChange} 
-                value={field.value} // Gunakan `value` alih-alih `defaultValue`
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih kategori" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="food">Makanan</SelectItem>
-                  <SelectItem value="transport">Transportasi</SelectItem>
-                  <SelectItem value="entertainment">Hiburan</SelectItem>
-                  <SelectItem value="bills">Tagihan</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Pilih Tanggal */}
-        <FormField
-          control={form.control}
-          name="date"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tanggal</FormLabel>
-              <FormControl>
-                <Input 
-                  type="date" 
-                  {...field} 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Pilih Tipe Transaksi */}
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tipe Transaksi</FormLabel>
-              <Select 
-                onValueChange={field.onChange} 
-                value={field.value} // Gunakan `value` alih-alih `defaultValue`
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih tipe" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="expense">Pengeluaran</SelectItem>
-                  <SelectItem value="income">Pemasukan</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Catatan Opsional */}
-        <FormField
-          control={form.control}
-          name="notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Catatan</FormLabel>
-              <FormControl>
-                <Input 
-                  placeholder="Tambahkan catatan (opsional)" 
-                  {...field} 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button 
-          type="submit" 
-          className="w-full"
-          disabled={addTransactionMutation.isPending}
-        >
-          {addTransactionMutation.isPending ? 'Menambahkan...' : 'Tambah Transaksi'}
+    <Card className="w-full max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle>Add New Expense</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="amount">Amount</Label>
+              <Input
+                id="amount"
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                {...register("amount", { valueAsNumber: true })}
+                aria-invalid={errors.amount ? "true" : "false"}
+              />
+              {errors.amount && (
+                <p className="text-sm text-red-500" role="alert">
+                  {errors.amount.message}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="category">Category</Label>
+              <Controller
+                name="category"
+                control={control}
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <SelectTrigger id="category">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.category && (
+                <p className="text-sm text-red-500" role="alert">
+                  {errors.category.message}
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="date">Date</Label>
+            <Input
+              id="date"
+              type="date"
+              {...register("date")}
+              aria-invalid={errors.date ? "true" : "false"}
+            />
+            {errors.date && (
+              <p className="text-sm text-red-500" role="alert">
+                {errors.date.message}
+              </p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea id="notes" placeholder="Add any additional details here" {...register("notes")} />
+          </div>
+        </form>
+      </CardContent>
+      <CardFooter className="flex justify-end space-x-4">
+        <Button type="button" variant="outline" onClick={() => router.push("/expenses")}>
+          Cancel
         </Button>
-      </form>
-    </Form>
-  );
+        <Button type="submit" disabled={isSubmitting || isPending} onClick={handleSubmit(onSubmit)}>
+          {isSubmitting || isPending ? "Adding Expense..." : "Add Expense"}
+        </Button>
+      </CardFooter>
+    </Card>
+  )
 }

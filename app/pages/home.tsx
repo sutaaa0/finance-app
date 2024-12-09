@@ -1,66 +1,25 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import Link  from "next/link";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Home, LayoutGrid, BarChart3, User, Pizza, Coffee, Bus, ShoppingBag, Gift, Heart, Menu, PenSquare, X } from "lucide-react";
+import { Pizza, Coffee, Bus, ShoppingBag, Gift, Heart, PenSquare } from "lucide-react";
 import MenuButton from "@/components/MenuButton";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useAddTransaction, useIncome, useTotalExpense, useTransactions } from "../hooks/transactions";
-import { Transaction } from "../types/types";
-import { useToast } from "@/hooks/use-toast";
+import { useIncome, useTotalExpense, useTransactions } from "../hooks/transactions";
 import { TransactionForm } from "@/components/TransactionForm";
 
 export default function HomePage() {
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState("expenses");
-  const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
   const { data: session } = useSession();
   const userId = session?.user?.id || "";
-  console.log("userID: ", userId);
 
-  console.log("session :", session);
-
-  const { data, isLoading, isError, error } = useTotalExpense(session?.user?.id || "");
-  const { data: dataTransaction } = useTransactions(session?.user?.id || "");
-  const { data: dataIncome, isLoading: isLoadingIncome } = useIncome(session?.user?.id || "");
-
-  console.log(
-    dataTransaction?.transactions.map((data: any) => {
-      console.log("hasil mapping data :", data.amount);
-    })
-  );
-
-  const addTransactionMutation = useAddTransaction();
-
-  const handleAddTransaction = (transaction: Transaction) => {
-    addTransactionMutation.mutate(transaction, {
-      onSuccess: () => {
-        // Tutup dialog
-        setIsAddTransactionOpen(false);
-
-        // Tampilkan toast sukses
-        useToast().toast({
-          title: "Transaksi berhasil ditambahkan!",
-        });
-      },
-      onError: (error) => {
-        // Tampilkan pesan error
-        useToast().toast({
-          title: "Gagal menambahkan transaksi",
-          description: error.message,
-          variant: "destructive",
-        });
-      },
-    });
-  };
+  const { data: totalExpense, isLoading: loadingExpense } = useTotalExpense(userId);
+  const { data: income, isLoading: loadingIncome } = useIncome(userId);
 
   return (
     <div className="min-h-screen bg-gray-50 mb-12">
@@ -69,20 +28,11 @@ export default function HomePage() {
         <div className="flex justify-between items-center">
           <MenuButton />
           <h1 className="text-white font-semibold">ExpenseWise</h1>
-          <Dialog open={isAddTransactionOpen} onOpenChange={setIsAddTransactionOpen}>
-            <DialogTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-white">
-                <PenSquare className="h-6 w-6" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Transaction</DialogTitle>
-                <DialogDescription>Enter the details of your new transaction here.</DialogDescription>
-              </DialogHeader>
-              <TransactionForm onClose={() => setIsAddTransactionOpen(false)} />
-            </DialogContent>
-          </Dialog>
+          <Link href="/transaction">
+            <Button variant="ghost" size="icon" className="text-white">
+              <PenSquare className="h-6 w-6" />
+            </Button>
+          </Link>
         </div>
         <div className="mt-6 text-center">
           <p className="text-purple-200 text-sm">Total Balance</p>
@@ -115,11 +65,11 @@ export default function HomePage() {
                   <div className="absolute inset-0 rounded-full border-8 border-gray-100" />
                   <div className="absolute inset-0 rounded-full border-8 border-purple-500 border-l-transparent border-r-transparent border-b-transparent transform -rotate-45" />
                   <div className="absolute inset-0 flex items-center justify-center flex-col">
-                    {isLoading ? (
+                    {loadingExpense ? (
                       <span>Loading...</span>
                     ) : (
                       <>
-                        <span className="text-3xl font-bold text-gray-800">{data?.totalExpense || 0}</span>
+                        <span className="text-3xl font-bold text-gray-800">{totalExpense?.totalExpense || 0}</span>
                         <span className="text-sm text-gray-500 mt-1">Total Expenses</span>
                       </>
                     )}
@@ -170,11 +120,11 @@ export default function HomePage() {
             {activeTab === "income" && (
               <motion.div key="income" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center py-8">
                 <h3 className="text-2xl font-bold text-gray-800 mb-4">Total Income</h3>
-                {isLoadingIncome ? (
+                {loadingIncome ? (
                   <span>Loading...</span>
                 ) : (
                   <>
-                    <p className="text-4xl font-bold text-green-500">${dataIncome?.totalIncome}</p>
+                    <p className="text-4xl font-bold text-green-500">${income?.totalIncome}</p>
                   </>
                 )}
                 <div className="mt-8 grid grid-cols-2 gap-4">
