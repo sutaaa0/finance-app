@@ -7,4 +7,9 @@ export type Transaction = {
     notes?: string;
     type: "income" | "expense";
   };
+
+  export type monthlyTransaction = {
+    category: string;
+    totalAmount: number;
+  }
   
