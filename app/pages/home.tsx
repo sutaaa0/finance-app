@@ -4,14 +4,14 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import Link  from "next/link";
+import Link from "next/link";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Pizza, Coffee, Bus, ShoppingBag, Gift, Heart, PenSquare } from "lucide-react";
+import { Pizza, Coffee, Bus, ShoppingBag, Gift, Heart, PenSquare, DollarSign, Film, Home, Lightbulb, Circle } from "lucide-react";
 import MenuButton from "@/components/MenuButton";
 import { useSession } from "next-auth/react";
-import { useIncome, useTotalExpense, useTransactions } from "../hooks/transactions";
-import { TransactionForm } from "@/components/TransactionForm";
+import { useIncome, useMonthlyTransactions, useTotalExpense, useTransactions } from "../hooks/transactions";
+import { monthlyTransaction, Transaction } from "../types/types";
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState("expenses");
@@ -20,6 +20,19 @@ export default function HomePage() {
 
   const { data: totalExpense, isLoading: loadingExpense } = useTotalExpense(userId);
   const { data: income, isLoading: loadingIncome } = useIncome(userId);
+  const { data: transactions, isLoading: loadingTransactions } = useTransactions(userId);
+  const { data: monthlyTransactions, isLoading: loadingMonthlyTransactions } = useMonthlyTransactions(userId);
+  console.log("data monthly :",monthlyTransactions)
+
+  const categoryIcons = {
+    salary: <DollarSign className="h-6 w-6 text-green-500 mb-2" />,
+    entertainment: <Film className="h-6 w-6 text-red-500 mb-2" />,
+    transport: <Bus className="h-6 w-6 text-yellow-500 mb-2" />,
+    healthcare: <Heart className="h-6 w-6 text-cyan-500 mb-2" />,
+    housing: <Home className="h-6 w-6 text-purple-500 mb-2" />,
+    utilities: <Lightbulb className="h-6 w-6 text-blue-500 mb-2" />,
+    default: <Circle className="h-6 w-6 text-gray-500 mb-2" />,
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 mb-12">
@@ -78,7 +91,7 @@ export default function HomePage() {
 
                 {/* Expense Categories */}
                 <div className="grid grid-cols-3 gap-4">
-                  <motion.div whileHover={{ scale: 1.05 }} className="bg-red-50 p-4 rounded-xl">
+                  {/* <motion.div whileHover={{ scale: 1.05 }} className="bg-red-50 p-4 rounded-xl">
                     <Pizza className="h-6 w-6 text-red-500 mb-2" />
                     <p className="text-sm text-gray-600">Food</p>
                     <p className="text-lg font-semibold text-gray-800">$235</p>
@@ -112,7 +125,14 @@ export default function HomePage() {
                     <Heart className="h-6 w-6 text-cyan-500 mb-2" />
                     <p className="text-sm text-gray-600">Health</p>
                     <p className="text-lg font-semibold text-gray-800">$115</p>
-                  </motion.div>
+                  </motion.div> */}
+                  {monthlyTransactions?.map((transaction: monthlyTransaction) => (
+                    <motion.div key={transaction.category} whileHover={{ scale: 1.05 }} className="p-4 rounded-xl bg-green-50">
+                     {categoryIcons[transaction.category.toLowerCase() as keyof typeof categoryIcons] || categoryIcons.default}
+                      <p className="text-sm text-gray-600">{transaction.category}</p>
+                      <p className="text-lg font-semibold text-gray-800">${transaction.totalAmount}</p>
+                    </motion.div>
+                  ))}
                 </div>
               </motion.div>
             )}
