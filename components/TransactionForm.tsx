@@ -19,16 +19,17 @@ import { useAddTransaction } from "@/app/hooks/transactions"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "@/hooks/use-toast"
 
-const expenseSchema = z.object({
+const transactionSchema = z.object({
+  type: z.enum(["income", "expense"], { errorMap: () => ({ message: "Transaction type is required" }) }),
   amount: z.number().positive("Amount must be a positive number"),
   category: z.string().min(1, "Category is required"),
   date: z.string().min(1, "Date is required"),
   notes: z.string().optional(),
 })
 
-type ExpenseFormData = z.infer<typeof expenseSchema>
+type TransactionFormData = z.infer<typeof transactionSchema>
 
-const categories = [
+const expenseCategories = [
   "Food & Dining",
   "Transportation",
   "Utilities",
@@ -43,7 +44,17 @@ const categories = [
   "Other",
 ]
 
-export function TransactionForm({userId}: {userId: string}) {
+const incomeCategories = [
+  "Salary",
+  "Business",
+  "Investments",
+  "Freelance",
+  "Rentals",
+  "Gifts",
+  "Other",
+]
+
+export function TransactionForm({ userId }: { userId: string }) {
   const router = useRouter()
   const { mutate, isPending } = useAddTransaction()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -53,34 +64,36 @@ export function TransactionForm({userId}: {userId: string}) {
     control,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
-  } = useForm<ExpenseFormData>({
-    resolver: zodResolver(expenseSchema),
+  } = useForm<TransactionFormData>({
+    resolver: zodResolver(transactionSchema),
   })
 
-  const onSubmit = async (data: ExpenseFormData) => {
+  const transactionType = watch("type")
+
+  const onSubmit = async (data: TransactionFormData) => {
     setIsSubmitting(true)
     try {
-      // Panggil mutate dari useAddTransaction untuk membuat transaksi
-       mutate({
-        type: "expense", // Tentukan jenis transaksi
+      mutate({
+        type: data.type,
         category: data.category,
         amount: data.amount,
-        date: new Date(data.date).toISOString(), // Ubah format tanggal 
+        date: new Date(data.date).toISOString(),
         notes: data.notes || '',
-        userId: userId, // Ganti dengan ID user yang sesuai
+        userId,
       })
       reset()
       toast({
-        title: "Expense added",
-        description: "Your expense has been successfully added.",
+        title: "Transaction added",
+        description: `Your ${data.type} has been successfully added.`,
       })
-      router.push("/home") // Redirect to expenses list page
+      router.push("/home")
     } catch (error) {
       console.error("Error creating transaction:", error)
       toast({
         title: "Error",
-        description: "There was an error adding your expense. Please try again.",
+        description: `There was an error adding your ${data.type}. Please try again.`,
         variant: "destructive",
       })
     } finally {
@@ -91,10 +104,33 @@ export function TransactionForm({userId}: {userId: string}) {
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle>Add New Expense</CardTitle>
+        <CardTitle>Add New Transaction</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="type">Transaction Type</Label>
+            <Controller
+              name="type"
+              control={control}
+              render={({ field }) => (
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <SelectTrigger id="type">
+                    <SelectValue placeholder="Select transaction type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="income">Income</SelectItem>
+                    <SelectItem value="expense">Expense</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.type && (
+              <p className="text-sm text-red-500" role="alert">
+                {errors.type.message}
+              </p>
+            )}
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="amount">Amount</Label>
@@ -123,7 +159,7 @@ export function TransactionForm({userId}: {userId: string}) {
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((category) => (
+                      {(transactionType === "income" ? incomeCategories : expenseCategories).map((category) => (
                         <SelectItem key={category} value={category}>
                           {category}
                         </SelectItem>
@@ -160,11 +196,9 @@ export function TransactionForm({userId}: {userId: string}) {
         </form>
       </CardContent>
       <CardFooter className="flex justify-end space-x-4">
-        <Button type="button" variant="outline" onClick={() => router.push("/expenses")}>
-          Cancel
-        </Button>
+        <Button type="button" variant="outline" onClick={() => router.push("/expenses")}>Cancel</Button>
         <Button type="submit" disabled={isSubmitting || isPending} onClick={handleSubmit(onSubmit)}>
-          {isSubmitting || isPending ? "Adding Expense..." : "Add Expense"}
+          {isSubmitting || isPending ? "Adding Transaction..." : "Add Transaction"}
         </Button>
       </CardFooter>
     </Card>
