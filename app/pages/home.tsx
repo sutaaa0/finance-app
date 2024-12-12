@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Pizza, Coffee, Bus, ShoppingBag, Gift, Heart, PenSquare, DollarSign, Film, Home, Lightbulb, Circle } from "lucide-react";
+import { Pizza, Coffee, Bus, ShoppingBag, Gift, Heart, PenSquare, DollarSign, Film, Home, Lightbulb, Circle } from 'lucide-react';
 import MenuButton from "@/components/MenuButton";
 import { useSession } from "next-auth/react";
 import { useIncome, useMonthlyTransactions, useTotalExpense, useTransactions } from "../hooks/transactions";
@@ -22,7 +22,7 @@ export default function HomePage() {
   const { data: income, isLoading: loadingIncome } = useIncome(userId);
   const { data: transactions, isLoading: loadingTransactions } = useTransactions(userId);
   const { data: monthlyTransactions, isLoading: loadingMonthlyTransactions } = useMonthlyTransactions(userId);
-  console.log("data monthly :",monthlyTransactions)
+  console.log("data monthly :", monthlyTransactions)
 
   const categoryIcons = {
     salary: <DollarSign className="h-6 w-6 text-green-500 mb-2" />,
@@ -33,6 +33,14 @@ export default function HomePage() {
     utilities: <Lightbulb className="h-6 w-6 text-blue-500 mb-2" />,
     default: <Circle className="h-6 w-6 text-gray-500 mb-2" />,
   };
+
+  const recentExpenses = useMemo(() => {
+    if (!transactions) return [];
+    return transactions
+      .filter((transaction: Transaction) => transaction.type === 'expense')
+      .sort((a: Transaction, b: Transaction) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 3);
+  }, [transactions]);
 
   return (
     <div className="min-h-screen bg-gray-50 mb-12">
@@ -55,7 +63,7 @@ export default function HomePage() {
 
       {/* Main Content */}
       <div className="px-4 -mt-20 relative z-10">
-        <Card className="p-6 bg-white shadow-lg rounded-xl">
+        <Card className="p-6 bg-white shadow-lg rounded-xl mb-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-3 mb-8">
               <TabsTrigger value="expenses" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white">
@@ -91,44 +99,9 @@ export default function HomePage() {
 
                 {/* Expense Categories */}
                 <div className="grid grid-cols-3 gap-4">
-                  {/* <motion.div whileHover={{ scale: 1.05 }} className="bg-red-50 p-4 rounded-xl">
-                    <Pizza className="h-6 w-6 text-red-500 mb-2" />
-                    <p className="text-sm text-gray-600">Food</p>
-                    <p className="text-lg font-semibold text-gray-800">$235</p>
-                  </motion.div>
-
-                  <motion.div whileHover={{ scale: 1.05 }} className="bg-blue-50 p-4 rounded-xl">
-                    <Coffee className="h-6 w-6 text-blue-500 mb-2" />
-                    <p className="text-sm text-gray-600">Cafe</p>
-                    <p className="text-lg font-semibold text-gray-800">$52</p>
-                  </motion.div>
-
-                  <motion.div whileHover={{ scale: 1.05 }} className="bg-yellow-50 p-4 rounded-xl">
-                    <Bus className="h-6 w-6 text-yellow-500 mb-2" />
-                    <p className="text-sm text-gray-600">Transport</p>
-                    <p className="text-lg font-semibold text-gray-800">$84</p>
-                  </motion.div>
-
-                  <motion.div whileHover={{ scale: 1.05 }} className="bg-green-50 p-4 rounded-xl">
-                    <ShoppingBag className="h-6 w-6 text-green-500 mb-2" />
-                    <p className="text-sm text-gray-600">Shopping</p>
-                    <p className="text-lg font-semibold text-gray-800">$523</p>
-                  </motion.div>
-
-                  <motion.div whileHover={{ scale: 1.05 }} className="bg-purple-50 p-4 rounded-xl">
-                    <Gift className="h-6 w-6 text-purple-500 mb-2" />
-                    <p className="text-sm text-gray-600">Gifts</p>
-                    <p className="text-lg font-semibold text-gray-800">$344</p>
-                  </motion.div>
-
-                  <motion.div whileHover={{ scale: 1.05 }} className="bg-cyan-50 p-4 rounded-xl">
-                    <Heart className="h-6 w-6 text-cyan-500 mb-2" />
-                    <p className="text-sm text-gray-600">Health</p>
-                    <p className="text-lg font-semibold text-gray-800">$115</p>
-                  </motion.div> */}
                   {monthlyTransactions?.map((transaction: monthlyTransaction) => (
                     <motion.div key={transaction.category} whileHover={{ scale: 1.05 }} className="p-4 rounded-xl bg-green-50">
-                     {categoryIcons[transaction.category.toLowerCase() as keyof typeof categoryIcons] || categoryIcons.default}
+                      {categoryIcons[transaction.category.toLowerCase() as keyof typeof categoryIcons] || categoryIcons.default}
                       <p className="text-sm text-gray-600">{transaction.category}</p>
                       <p className="text-lg font-semibold text-gray-800">${transaction.totalAmount}</p>
                     </motion.div>
@@ -181,7 +154,34 @@ export default function HomePage() {
             )}
           </AnimatePresence>
         </Card>
+
+        {/* Recent Expenses Section */}
+        <Card className="p-6 bg-white shadow-lg rounded-xl">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">Recent Expenses</h3>
+          {loadingTransactions ? (
+            <p>Loading recent expenses...</p>
+          ) : (
+            <div className="space-y-4">
+              {recentExpenses.map((expense: Transaction) => (
+                <div key={expense.id} className="flex items-center justify-between border-b pb-2">
+                  <div className="flex items-center">
+                    {categoryIcons[expense.category.toLowerCase() as keyof typeof categoryIcons] || categoryIcons.default}
+                    <div className="ml-3">
+                      <p className="font-semibold text-gray-800">{expense.category}</p>
+                      <p className="text-sm text-gray-500">{new Date(expense.date).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-red-500">-${expense.amount.toFixed(2)}</p>
+                    <p className="text-sm text-gray-500">{expense.notes}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
       </div>
     </div>
   );
 }
+
