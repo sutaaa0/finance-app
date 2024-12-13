@@ -90,7 +90,8 @@ export default function HomePage() {
                       <span>Loading...</span>
                     ) : (
                       <>
-                        <span className="text-3xl font-bold text-gray-800">{totalExpense?.totalExpense || 0}</span>
+                        <span className="text-3xl font-bold text-gray-800">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(totalExpense?.totalExpense || 0)}</span>
+
                         <span className="text-sm text-gray-500 mt-1">Total Expenses</span>
                       </>
                     )}
