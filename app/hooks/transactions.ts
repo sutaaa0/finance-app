@@ -77,3 +77,15 @@ export function useAddTransaction() {
     },
   });
 }
+
+export function useHistoryIncome(userId: string) {
+  return useQuery({
+    queryKey: ["history-income", userId],
+    queryFn: async () => {
+      if (!userId) throw new Error("User ID not found");
+      const { data } = await axios.get(`${API_URL}/${userId}/history-income`);
+      return data;
+    },
+    enabled: !!userId
+  })
+}
