@@ -7,10 +7,10 @@ import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Pizza, Coffee, Bus, ShoppingBag, Gift, Heart, PenSquare, DollarSign, Film, Home, Lightbulb, Circle } from 'lucide-react';
+import { Pizza, Coffee, Bus, ShoppingBag, Gift, Heart, PenSquare, DollarSign, Film, Home, Lightbulb, Circle } from "lucide-react";
 import MenuButton from "@/components/MenuButton";
 import { useSession } from "next-auth/react";
-import { useIncome, useMonthlyTransactions, useTotalExpense, useTransactions } from "../hooks/transactions";
+import { useHistoryIncome, useIncome, useMonthlyTransactions, useTotalExpense, useTransactions } from "../hooks/transactions";
 import { monthlyTransaction, Transaction } from "../types/types";
 
 export default function HomePage() {
@@ -22,7 +22,7 @@ export default function HomePage() {
   const { data: income, isLoading: loadingIncome } = useIncome(userId);
   const { data: transactions, isLoading: loadingTransactions } = useTransactions(userId);
   const { data: monthlyTransactions, isLoading: loadingMonthlyTransactions } = useMonthlyTransactions(userId);
-  console.log("data monthly :", monthlyTransactions)
+  const { data: historyIncome, isLoading: loadingHistoryIncome } = useHistoryIncome(userId);
 
   const categoryIcons = {
     salary: <DollarSign className="h-6 w-6 text-green-500 mb-2" />,
@@ -37,7 +37,7 @@ export default function HomePage() {
   const recentExpenses = useMemo(() => {
     if (!transactions) return [];
     return transactions
-      .filter((transaction: Transaction) => transaction.type === 'expense')
+      .filter((transaction: Transaction) => transaction.type === "expense")
       .sort((a: Transaction, b: Transaction) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 3);
   }, [transactions]);
@@ -156,32 +156,60 @@ export default function HomePage() {
         </Card>
 
         {/* Recent Expenses Section */}
-        <Card className="p-6 bg-white shadow-lg rounded-xl">
-          <h3 className="text-xl font-bold text-gray-800 mb-4">Recent Expenses</h3>
-          {loadingTransactions ? (
-            <p>Loading recent expenses...</p>
-          ) : (
-            <div className="space-y-4">
-              {recentExpenses.map((expense: Transaction) => (
-                <div key={expense.id} className="flex items-center justify-between border-b pb-2">
-                  <div className="flex items-center">
-                    {categoryIcons[expense.category.toLowerCase() as keyof typeof categoryIcons] || categoryIcons.default}
-                    <div className="ml-3">
-                      <p className="font-semibold text-gray-800">{expense.category}</p>
-                      <p className="text-sm text-gray-500">{new Date(expense.date).toLocaleDateString()}</p>
+        {activeTab == "expenses" && (
+          <Card className="p-6 bg-white shadow-lg rounded-xl">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Recent Expenses</h3>
+            {loadingTransactions ? (
+              <p>Loading recent expenses...</p>
+            ) : (
+              <div className="space-y-4">
+                {recentExpenses.map((expense: Transaction) => (
+                  <div key={expense.id} className="flex items-center justify-between border-b pb-2">
+                    <div className="flex items-center">
+                      {categoryIcons[expense.category.toLowerCase() as keyof typeof categoryIcons] || categoryIcons.default}
+                      <div className="ml-3">
+                        <p className="font-semibold text-gray-800">{expense.category}</p>
+                        <p className="text-sm text-gray-500">{new Date(expense.date).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-red-500">-${expense.amount.toFixed(2)}</p>
+                      <p className="text-sm text-gray-500">{expense.notes}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-red-500">-${expense.amount.toFixed(2)}</p>
-                    <p className="text-sm text-gray-500">{expense.notes}</p>
+                ))}
+              </div>
+            )}
+          </Card>
+        )}
+
+        {activeTab == "income" && (
+          <Card className="p-6 bg-white shadow-lg rounded-xl">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Recent Expenses</h3>
+            {loadingHistoryIncome ? (
+              <p>Loading recent expenses...</p>
+            ) : (
+              <div className="space-y-4">
+                {historyIncome.map((expense: Transaction) => (
+                  <div key={expense.id} className="flex items-center justify-between border-b pb-2">
+                    <div className="flex items-center">
+                      {categoryIcons[expense.category.toLowerCase() as keyof typeof categoryIcons] || categoryIcons.default}
+                      <div className="ml-3">
+                        <p className="font-semibold text-gray-800">{expense.category}</p>
+                        <p className="text-sm text-gray-500">{new Date(expense.date).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-red-500">-${expense.amount.toFixed(2)}</p>
+                      <p className="text-sm text-gray-500">{expense.notes}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
+                ))}
+              </div>
+            )}
+          </Card>
+        )}
       </div>
     </div>
   );
 }
-
