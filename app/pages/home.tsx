@@ -123,7 +123,7 @@ export default function HomePage() {
                   <span>Loading...</span>
                 ) : (
                   <>
-                    <p className="text-4xl font-bold text-green-500">${income?.totalIncome}</p>
+                    <p className="text-4xl font-bold text-green-500">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(income?.totalIncome || 0)}</p>
                   </>
                 )}
                 <div className="mt-8 grid grid-cols-2 gap-4">
@@ -179,7 +179,7 @@ export default function HomePage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-red-500">-${expense.amount.toFixed(2)}</p>
+                      <p className="font-semibold text-red-500">-{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(expense.amount)}</p>
                       <p className="text-sm text-gray-500">{expense.notes}</p>
                     </div>
                   </div>
@@ -206,7 +206,7 @@ export default function HomePage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-green-500">+${income.amount.toFixed(2)}</p>
+                      <p className="font-semibold text-green-500">+{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(income.amount)}</p>
                       <p className="text-sm text-gray-500">{income.notes}</p>
                     </div>
                   </div>
