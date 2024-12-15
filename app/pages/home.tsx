@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Pizza, Coffee, Bus, ShoppingBag, Gift, Heart, PenSquare, DollarSign, Film, Home, Lightbulb, Circle, Briefcase } from "lucide-react";
 import MenuButton from "@/components/MenuButton";
 import { useSession } from "next-auth/react";
-import { useHistoryIncome, useIncome, useMonthlyTransactions, useTotalExpense, useTransactions } from "../hooks/transactions";
+import { useHistoryIncome, useIncome, useMonthlyIncomeTransactions, useMonthlyTransactions, useTotalExpense, useTransactions } from "../hooks/transactions";
 import { monthlyTransaction, Transaction } from "../types/types";
 
 export default function HomePage() {
@@ -22,7 +22,10 @@ export default function HomePage() {
   const { data: income, isLoading: loadingIncome } = useIncome(userId);
   const { data: transactions, isLoading: loadingTransactions } = useTransactions(userId);
   const { data: monthlyTransactions, isLoading: loadingMonthlyTransactions } = useMonthlyTransactions(userId);
+  const { data: monthlyIncomeTransactions, isLoading: loadingMonthlyIncomeTransactions } = useMonthlyIncomeTransactions(userId);
   const { data: historyIncome, isLoading: loadingHistoryIncome } = useHistoryIncome(userId);
+
+  console.log("incomeMonthly", monthlyIncomeTransactions);
 
   const categoryIcons = {
     salary: <DollarSign className="h-6 w-6 text-green-500 mb-2" />,
@@ -32,7 +35,7 @@ export default function HomePage() {
     shopping: <ShoppingBag className="h-6 w-6 text-pink-500 mb-2" />,
     gift: <Gift className="h-6 w-6 text-purple-500 mb-2" />,
     coffee: <Coffee className="h-6 w-6 text-blue-500 mb-2" />,
-    business: <Briefcase className="h-6 w-6 text-yellow-800 mb-2" />,        
+    business: <Briefcase className="h-6 w-6 text-yellow-800 mb-2" />,
     healthcare: <Heart className="h-6 w-6 text-cyan-500 mb-2" />,
     housing: <Home className="h-6 w-6 text-purple-500 mb-2" />,
     utilities: <Lightbulb className="h-6 w-6 text-blue-500 mb-2" />,
@@ -123,18 +126,18 @@ export default function HomePage() {
                   <span>Loading...</span>
                 ) : (
                   <>
-                    <p className="text-4xl font-bold text-green-500">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(income?.totalIncome || 0)}</p>
+                    <p className="font-bold text-green-500">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(income?.totalIncome || 0)}</p>
                   </>
                 )}
-                <div className="mt-8 grid grid-cols-2 gap-4">
-                  <div className="bg-green-50 p-4 rounded-xl">
-                    <p className="text-sm text-gray-600">Salary</p>
-                    <p className="text-lg font-semibold text-gray-800">$4,500</p>
-                  </div>
-                  <div className="bg-blue-50 p-4 rounded-xl">
-                    <p className="text-sm text-gray-600">Freelance</p>
-                    <p className="text-lg font-semibold text-gray-800">$780</p>
-                  </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  {monthlyIncomeTransactions?.map((transaction: monthlyTransaction) => (
+                    <motion.div key={transaction.category} whileHover={{ scale: 1.05 }} className="p-4 rounded-xl bg-green-50">
+                      {categoryIcons[transaction.category.toLowerCase() as keyof typeof categoryIcons] || categoryIcons.default}
+                      <p className="text-sm text-gray-600">{transaction.category}</p>
+                      <p className="text-lg font-semibold text-gray-800">${transaction.totalAmount}</p>
+                    </motion.div>
+                  ))}
                 </div>
               </motion.div>
             )}
@@ -196,21 +199,22 @@ export default function HomePage() {
               <p>Loading recent expenses...</p>
             ) : (
               <div className="space-y-4">
-                {historyIncome.map((income: Transaction) => (
-                  <div key={income.id} className="flex items-center justify-between border-b pb-2">
-                    <div className="flex items-center">
-                      {categoryIcons[income.category.toLowerCase() as keyof typeof categoryIcons] || categoryIcons.default}
-                      <div className="ml-3">
-                        <p className="font-semibold text-gray-800">{income.category}</p>
-                        <p className="text-sm text-gray-500">{new Date(income.date).toLocaleDateString()}</p>
+                {historyIncome &&
+                  historyIncome.map((income: Transaction) => (
+                    <div key={income.id} className="flex items-center justify-between border-b pb-2">
+                      <div className="flex items-center">
+                        {categoryIcons[income.category.toLowerCase() as keyof typeof categoryIcons] || categoryIcons.default}
+                        <div className="ml-3">
+                          <p className="font-semibold text-gray-800">{income.category}</p>
+                          <p className="text-sm text-gray-500">{new Date(income.date).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-green-500">+{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(income.amount)}</p>
+                        <p className="text-sm text-gray-500">{income.notes}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-green-500">+{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(income.amount)}</p>
-                      <p className="text-sm text-gray-500">{income.notes}</p>
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             )}
           </Card>
