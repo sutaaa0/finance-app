@@ -46,6 +46,18 @@ export function useMonthlyTransactions(userId: string) {
   })
 }
 
+export function useMonthlyIncomeTransactions(userId: string) {
+  return useQuery({
+    queryKey: ["monthly-income-transactions", userId],
+    queryFn: async () => {
+      if (!userId) throw new Error("User ID not found");
+      const { data } = await axios.get(`${API_URL}/${userId}/income/monthly-summary`);
+      return data;
+    },
+    enabled: !!userId,
+  })
+}
+
 
 export function useIncome(userId: string) {
   return useQuery({
