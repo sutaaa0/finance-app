@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Pizza, Coffee, Bus, ShoppingBag, Gift, Heart, PenSquare, DollarSign, Film, Home, Lightbulb, Circle } from "lucide-react";
+import { Pizza, Coffee, Bus, ShoppingBag, Gift, Heart, PenSquare, DollarSign, Film, Home, Lightbulb, Circle, Briefcase } from "lucide-react";
 import MenuButton from "@/components/MenuButton";
 import { useSession } from "next-auth/react";
 import { useHistoryIncome, useIncome, useMonthlyTransactions, useTotalExpense, useTransactions } from "../hooks/transactions";
@@ -27,7 +27,12 @@ export default function HomePage() {
   const categoryIcons = {
     salary: <DollarSign className="h-6 w-6 text-green-500 mb-2" />,
     entertainment: <Film className="h-6 w-6 text-red-500 mb-2" />,
+    food: <Pizza className="h-6 w-6 text-orange-500 mb-2" />,
     transport: <Bus className="h-6 w-6 text-yellow-500 mb-2" />,
+    shopping: <ShoppingBag className="h-6 w-6 text-pink-500 mb-2" />,
+    gift: <Gift className="h-6 w-6 text-purple-500 mb-2" />,
+    coffee: <Coffee className="h-6 w-6 text-blue-500 mb-2" />,
+    business: <Briefcase className="h-6 w-6 text-yellow-800 mb-2" />,        
     healthcare: <Heart className="h-6 w-6 text-cyan-500 mb-2" />,
     housing: <Home className="h-6 w-6 text-purple-500 mb-2" />,
     utilities: <Lightbulb className="h-6 w-6 text-blue-500 mb-2" />,
@@ -191,18 +196,18 @@ export default function HomePage() {
               <p>Loading recent expenses...</p>
             ) : (
               <div className="space-y-4">
-                {historyIncome.map((expense: Transaction) => (
-                  <div key={expense.id} className="flex items-center justify-between border-b pb-2">
+                {historyIncome.map((income: Transaction) => (
+                  <div key={income.id} className="flex items-center justify-between border-b pb-2">
                     <div className="flex items-center">
-                      {categoryIcons[expense.category.toLowerCase() as keyof typeof categoryIcons] || categoryIcons.default}
+                      {categoryIcons[income.category.toLowerCase() as keyof typeof categoryIcons] || categoryIcons.default}
                       <div className="ml-3">
-                        <p className="font-semibold text-gray-800">{expense.category}</p>
-                        <p className="text-sm text-gray-500">{new Date(expense.date).toLocaleDateString()}</p>
+                        <p className="font-semibold text-gray-800">{income.category}</p>
+                        <p className="text-sm text-gray-500">{new Date(income.date).toLocaleDateString()}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-red-500">-${expense.amount.toFixed(2)}</p>
-                      <p className="text-sm text-gray-500">{expense.notes}</p>
+                      <p className="font-semibold text-green-500">+${income.amount.toFixed(2)}</p>
+                      <p className="text-sm text-gray-500">{income.notes}</p>
                     </div>
                   </div>
                 ))}
