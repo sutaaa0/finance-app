@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Pizza, Coffee, Bus, ShoppingBag, Gift, Heart, PenSquare, DollarSign, Film, Home, Lightbulb, Circle, Briefcase } from "lucide-react";
+import { Pizza, Coffee, Bus, ShoppingBag, Gift, Heart, PenSquare, DollarSign, Film, Home, Lightbulb, Circle, Briefcase, Laptop } from "lucide-react";
 import MenuButton from "@/components/MenuButton";
 import { useSession } from "next-auth/react";
 import { useHistoryIncome, useIncome, useMonthlyIncomeTransactions, useMonthlyTransactions, useTotalExpense, useTransactions } from "../hooks/transactions";
@@ -33,13 +33,14 @@ export default function HomePage() {
     food: <Pizza className="h-6 w-6 text-orange-500 mb-2" />,
     transport: <Bus className="h-6 w-6 text-yellow-500 mb-2" />,
     shopping: <ShoppingBag className="h-6 w-6 text-pink-500 mb-2" />,
-    gift: <Gift className="h-6 w-6 text-purple-500 mb-2" />,
+    gifts: <Gift className="h-6 w-6 text-purple-500 mb-2" />,
     coffee: <Coffee className="h-6 w-6 text-blue-500 mb-2" />,
     business: <Briefcase className="h-6 w-6 text-yellow-800 mb-2" />,
     healthcare: <Heart className="h-6 w-6 text-cyan-500 mb-2" />,
     housing: <Home className="h-6 w-6 text-purple-500 mb-2" />,
     utilities: <Lightbulb className="h-6 w-6 text-blue-500 mb-2" />,
     default: <Circle className="h-6 w-6 text-gray-500 mb-2" />,
+    freelance: <Laptop className="h-6 w-6 mb-2"/>
   };
 
   const recentExpenses = useMemo(() => {
