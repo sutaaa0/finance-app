@@ -28,8 +28,6 @@ export default function HomePage() {
 
   const sevings = totalIncomeInMonth - totalExpenseInMonth;
 
-  console.log("total expense in month: ", totalExpenseInMonth);
-  console.log("total income in month: ", totalIncomeInMonth);
 
   const categoryIcons = {
     salary: <DollarSign className="h-6 w-6 text-green-500 mb-2" />,
