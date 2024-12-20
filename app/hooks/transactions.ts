@@ -101,3 +101,28 @@ export function useHistoryIncome(userId: string) {
     enabled: !!userId
   })
 }
+
+export function useTotalExpenseInMonth(userId: string) {
+  return useQuery({
+    queryKey: ["total-expense-in-month", userId],
+    queryFn: async () => {
+      if (!userId) throw new Error("User ID not found");
+      const { data } = await axios.get(`${API_URL}/${userId}/totalExpense/monthly-summary`);
+      return data.totalExpense;
+    },
+    enabled: !!userId
+  })
+}
+
+export function useTotalIncomeInMonth(userId: string) {
+  return useQuery({
+    queryKey: ["total-income-in-month", userId],
+    queryFn: async () => {
+      if (!userId) throw new Error("User ID not found");
+      const { data } = await axios.get(`${API_URL}/${userId}/totalIncome/monthly-summary`);
+      // Assuming data.totalIncome is the primitive value we need
+      return data.totalIncome;
+    },
+    enabled: !!userId
+  })
+}
