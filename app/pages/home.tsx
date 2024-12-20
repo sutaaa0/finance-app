@@ -26,15 +26,15 @@ export default function HomePage() {
   const { data: totalExpenseInMonth, isLoading: loadingTotalExpenseInMonth } = useTotalExpenseInMonth(userId);
   const { data: totalIncomeInMonth, isLoading: loadingTotalIncomeInMonth } = useTotalIncomeInMonth(userId);
 
-  const sevings = totalIncomeInMonth - totalExpenseInMonth;
-  const totalBalance = totalIncomeInMonth - totalExpenseInMonth;
+  const sevings = (totalIncomeInMonth || 0) - (totalExpenseInMonth || 0);
+  const totalBalance = (totalIncomeInMonth || 0) - (totalExpenseInMonth || 0);
 
 
   const categoryIcons = {
     salary: <DollarSign className="h-6 w-6 text-green-500 mb-2" />,
     entertainment: <Film className="h-6 w-6 text-red-500 mb-2" />,
-    food: <Pizza className="h-6 w-6 text-orange-500 mb-2" />,
-    transport: <Bus className="h-6 w-6 text-yellow-500 mb-2" />,
+    "food & drink": <Pizza className="h-6 w-6 text-orange-500 mb-2" />,
+    transportation: <Bus className="h-6 w-6 text-yellow-500 mb-2" />,
     shopping: <ShoppingBag className="h-6 w-6 text-pink-500 mb-2" />,
     gifts: <Gift className="h-6 w-6 text-purple-500 mb-2" />,
     coffee: <Coffee className="h-6 w-6 text-blue-500 mb-2" />,
@@ -47,7 +47,11 @@ export default function HomePage() {
     investment: <BarChart className="h-6 w-6 text-green-500 mb-2" />,
     rentals: <Key className="h-6 w-6 text-yellow-500 mb-2" />,
     other: <MoreHorizontal className="h-6 w-6 text-gray-500 mb-2" />,
-    
+    "personal care": <Heart className="h-6 w-6 text-cyan-500 mb-2" />,
+    education: <Briefcase className="h-6 w-6 text-yellow-800 mb-2" />,
+    travel: <Bus className="h-6 w-6 text-yellow-500 mb-2" />,
+    "gift & donations":  <Gift className="h-6 w-6 text-yellow-500 mb-2" />,
+
   };
 
   const recentExpenses = useMemo(() => {
