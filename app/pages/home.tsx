@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Pizza, Coffee, Bus, ShoppingBag, Gift, Heart, PenSquare, DollarSign, Film, Home, Lightbulb, Circle, Briefcase, Laptop } from "lucide-react";
 import MenuButton from "@/components/MenuButton";
 import { useSession } from "next-auth/react";
-import { useHistoryIncome, useIncome, useMonthlyIncomeTransactions, useMonthlyTransactions, useTotalExpense, useTransactions } from "../hooks/transactions";
+import { useHistoryIncome, useIncome, useMonthlyIncomeTransactions, useMonthlyTransactions, useTotalExpense, useTotalExpenseInMonth, useTotalIncomeInMonth, useTransactions } from "../hooks/transactions";
 import { monthlyTransaction, Transaction } from "../types/types";
 
 export default function HomePage() {
@@ -24,8 +24,13 @@ export default function HomePage() {
   const { data: monthlyTransactions, isLoading: loadingMonthlyTransactions } = useMonthlyTransactions(userId);
   const { data: monthlyIncomeTransactions, isLoading: loadingMonthlyIncomeTransactions } = useMonthlyIncomeTransactions(userId);
   const { data: historyIncome, isLoading: loadingHistoryIncome } = useHistoryIncome(userId);
+  const { data: totalExpenseInMonth, isLoading: loadingTotalExpenseInMonth } = useTotalExpenseInMonth(userId);
+  const { data: totalIncomeInMonth, isLoading: loadingTotalIncomeInMonth } = useTotalIncomeInMonth(userId);
 
-  console.log("incomeMonthly", monthlyIncomeTransactions);
+  const sevings = totalIncomeInMonth - totalExpenseInMonth;
+
+  console.log("total expense in month: ", totalExpenseInMonth);
+  console.log("total income in month: ", totalIncomeInMonth);
 
   const categoryIcons = {
     salary: <DollarSign className="h-6 w-6 text-green-500 mb-2" />,
@@ -40,7 +45,7 @@ export default function HomePage() {
     housing: <Home className="h-6 w-6 text-purple-500 mb-2" />,
     utilities: <Lightbulb className="h-6 w-6 text-blue-500 mb-2" />,
     default: <Circle className="h-6 w-6 text-gray-500 mb-2" />,
-    freelance: <Laptop className="h-6 w-6 mb-2"/>
+    freelance: <Laptop className="h-6 w-6 mb-2" />,
   };
 
   const recentExpenses = useMemo(() => {
@@ -149,16 +154,16 @@ export default function HomePage() {
                 <div className="flex justify-between items-center mb-8">
                   <div>
                     <p className="text-sm text-gray-600">Total Income</p>
-                    <p className="text-xl font-semibold text-green-500">$5,280.00</p>
+                    <p className="text-xl font-semibold text-green-500">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(totalIncomeInMonth || 0)}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Total Expenses</p>
-                    <p className="text-xl font-semibold text-red-500">$1,612.50</p>
+                    <p className="text-xl font-semibold text-red-500">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(totalExpenseInMonth || 0)}</p>
                   </div>
                 </div>
                 <div className="bg-purple-50 p-4 rounded-xl">
                   <p className="text-sm text-gray-600">Net Savings</p>
-                  <p className="text-2xl font-bold text-purple-500">$3,667.50</p>
+                  <p className="text-2xl font-bold text-purple-500">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(sevings || 0)}</p>
                 </div>
               </motion.div>
             )}
