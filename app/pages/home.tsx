@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Pizza, Coffee, Bus, ShoppingBag, Gift, Heart, PenSquare, DollarSign, Film, Home, Lightbulb, Circle, Briefcase, Laptop } from "lucide-react";
+import { Pizza, Coffee, Bus, ShoppingBag, Gift, Heart, PenSquare, DollarSign, Film, Home, Lightbulb, Circle, Briefcase, Laptop, BarChart, Key, MoreHorizontal } from "lucide-react";
 import MenuButton from "@/components/MenuButton";
 import { useSession } from "next-auth/react";
 import { useHistoryIncome, useIncome, useMonthlyIncomeTransactions, useMonthlyTransactions, useTotalExpense, useTotalExpenseInMonth, useTotalIncomeInMonth, useTransactions } from "../hooks/transactions";
@@ -27,6 +27,7 @@ export default function HomePage() {
   const { data: totalIncomeInMonth, isLoading: loadingTotalIncomeInMonth } = useTotalIncomeInMonth(userId);
 
   const sevings = totalIncomeInMonth - totalExpenseInMonth;
+  const totalBalance = totalIncomeInMonth - totalExpenseInMonth;
 
 
   const categoryIcons = {
@@ -43,6 +44,9 @@ export default function HomePage() {
     utilities: <Lightbulb className="h-6 w-6 text-blue-500 mb-2" />,
     default: <Circle className="h-6 w-6 text-gray-500 mb-2" />,
     freelance: <Laptop className="h-6 w-6 mb-2" />,
+    investment: <BarChart className="h-6 w-6 text-green-500 mb-2" />,
+    rentals: <Key className="h-6 w-6 text-yellow-500 mb-2" />,
+    other: <MoreHorizontal className="h-6 w-6 text-gray-500 mb-2" />,
   };
 
   const recentExpenses = useMemo(() => {
@@ -68,7 +72,7 @@ export default function HomePage() {
         </div>
         <div className="mt-6 text-center">
           <p className="text-purple-200 text-sm">Total Balance</p>
-          <h2 className="text-white text-3xl font-bold mt-1">$32,500.00</h2>
+          <h2 className="text-white text-3xl font-bold mt-1">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(totalBalance || 0)}</h2>
         </div>
       </div>
 
