@@ -30,7 +30,7 @@ const transactionSchema = z.object({
 type TransactionFormData = z.infer<typeof transactionSchema>
 
 const expenseCategories = [
-  "Food & drink",
+  "Food & Drink",
   "Transportation",
   "Utilities",
   "Housing",
