@@ -47,6 +47,7 @@ export default function HomePage() {
     investment: <BarChart className="h-6 w-6 text-green-500 mb-2" />,
     rentals: <Key className="h-6 w-6 text-yellow-500 mb-2" />,
     other: <MoreHorizontal className="h-6 w-6 text-gray-500 mb-2" />,
+    
   };
 
   const recentExpenses = useMemo(() => {
