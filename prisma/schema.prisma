@@ -16,6 +16,7 @@ model User {
   accounts      Account[]
   transactions Transaction[]
   sessions      Session[]
+  budgets       Budget[]
   // Optional for WebAuthn support
   Authenticator Authenticator[]
  
@@ -87,4 +88,13 @@ model Transaction {
   notes       String?
   userId      String
   user        User      @relation(fields: [userId], references: [id])
+}
+
+model Budget {
+  id          String       @id @default(cuid())
+  category    String
+  amount      Float
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  date        DateTime  @default(now())
 }
