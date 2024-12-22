@@ -4,6 +4,7 @@ import "./globals.css";
 import BottomNavigasi from "@/components/BottomNavigasi";
 import Provider from "@/components/Provider";
 import QueryProvider from "@/components/QueryProvider";
+import { Toaster } from "@/components/ui/toaster";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -32,6 +33,7 @@ export default function RootLayout({
         <Provider>
           <QueryProvider>{children}</QueryProvider>
         </Provider>
+        <Toaster />
         <BottomNavigasi />
       </body>
     </html>
