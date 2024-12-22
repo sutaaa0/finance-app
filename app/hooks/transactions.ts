@@ -126,3 +126,24 @@ export function useTotalIncomeInMonth(userId: string) {
     enabled: !!userId
   })
 }
+
+export function useAddBudget(userId: string) {
+  return useMutation({
+    mutationFn: async (budget: any) => {
+      const { data } = await axios.post(`${API_URL}/${userId}/budget`, budget);
+      return data;
+    }
+  })
+}
+
+export function useGetBudget(userId: string) {
+  return useQuery({
+    queryKey: ["get-budget", userId],
+    queryFn: async () => {
+      if (!userId) throw new Error("User ID not found");
+      const { data } = await axios.get(`${API_URL}/${userId}/budget`);
+      return data;
+    },
+    enabled: !!userId
+  })
+}
