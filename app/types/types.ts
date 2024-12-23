@@ -12,4 +12,11 @@ export type Transaction = {
     category: string;
     totalAmount: number;
   }
+
+  export type Budget = {
+    id?: string;
+    userId: string;
+    category: string;
+    amount: number;
+  };
   
