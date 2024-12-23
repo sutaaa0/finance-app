@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { BarChart, Briefcase, Bus, Circle, Film, Gift, Heart, Home, Key, Lightbulb, MoreHorizontal, Pizza, ShoppingCart  } from "lucide-react";
-import { useGetBudget, useMonthlyTransactions } from "../hooks/transactions";
+import { useAddBudget, useGetBudget, useMonthlyTransactions } from "../hooks/transactions";
 import { Budget } from "../types/types";
 
 // Define the schema using zod
@@ -49,6 +49,8 @@ export default function CategoryPage({ userId }: { userId: string }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const { data: budgetData, isLoading: budgetLoading } = useGetBudget(userId);
   const { data: monthlyTransactions, isLoading: transactionsLoading } = useMonthlyTransactions(userId);
+  const { mutate: addBudget, isPending: addingBudget } = useAddBudget(userId);
+
 
   console.log("budget :", budgetData);
 
@@ -57,8 +59,14 @@ export default function CategoryPage({ userId }: { userId: string }) {
   });
 
   const onSubmit = (data: FormData) => {
-    // Add new budget category logic here
-    setIsAddModalOpen(false);
+    addBudget(
+      { category: data.name, amount: data.amount },
+      {
+        onSuccess: () => {
+          setIsAddModalOpen(false);
+        },
+      }
+    );
   };
 
   if (budgetLoading || transactionsLoading) {
