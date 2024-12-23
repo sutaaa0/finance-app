@@ -34,7 +34,9 @@ export default function RootLayout({
           <QueryProvider>{children}</QueryProvider>
         </Provider>
         <Toaster />
-        <BottomNavigasi />
+       <div className="py-6">
+       <BottomNavigasi />
+       </div>
       </body>
     </html>
   );
