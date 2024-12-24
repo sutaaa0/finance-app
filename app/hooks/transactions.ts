@@ -147,3 +147,16 @@ export function useGetBudget(userId: string) {
     enabled: !!userId
   })
 }
+
+
+export function useStats(userId: string) {
+  return useQuery({
+    queryKey: ["stats", userId],
+    queryFn: async () => {
+      if (!userId) throw new Error("User ID not found");
+      const { data } = await axios.get(`${API_URL}/${userId}/financial-summary`);
+      return data;
+    },
+    enabled: !!userId
+  })
+}
