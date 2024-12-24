@@ -37,7 +37,7 @@ interface ExpenseTrend {
   year: number[];
 }
 
-export default function StatsScreen() {
+export default function StatsScreen({userId}: {userId : String}) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<keyof Stats>('week');
   const [stats, setStats] = useState<Stats>({
